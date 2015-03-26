@@ -13,4 +13,14 @@ public interface CIJobQueryResult {
 	 * @return the {@link CIJobStatus}.
 	 */
 	CIJobStatus getJobStatus();
+
+	/**
+	 * @return the name of the job.
+	 */
+	String getName();
+
+	/**
+	 * @return <code>true</code> if job is running, otherwise <code>false</code>.
+	 */
+	boolean isRunning();
 }

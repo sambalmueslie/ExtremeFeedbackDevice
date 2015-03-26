@@ -9,6 +9,7 @@ package de.sambalmueslie.extreme_feedback_device.ci;
  * @author sambalmueslie 2015
  */
 public interface CIServer {
+
 	/**
 	 * Query a job on the server.
 	 *
