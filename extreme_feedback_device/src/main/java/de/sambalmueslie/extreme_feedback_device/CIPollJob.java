@@ -9,8 +9,13 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import de.sambalmueslie.extreme_feedback_device.ci.CIJobQueryResult;
+import de.sambalmueslie.extreme_feedback_device.ci.CIJobStatus;
 import de.sambalmueslie.extreme_feedback_device.ci.CIServer;
 import de.sambalmueslie.extreme_feedback_device.xfd.ExtremeFeedbackDevice;
 
@@ -20,9 +25,10 @@ import de.sambalmueslie.extreme_feedback_device.xfd.ExtremeFeedbackDevice;
  * @author sambalmueslie 2015
  */
 public class CIPollJob {
-
 	/** the default update interval. */
 	private static long DEFAULT_UPDATE_INTERVAL = 60 * 1000;
+	/** the {@link Logger}. */
+	private static Logger logger = LogManager.getLogger(CIPollJob.class);
 
 	/**
 	 * Constructor.
@@ -68,6 +74,9 @@ public class CIPollJob {
 	 * Execute the job.
 	 */
 	public void start() {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Starting poll job for " + jobName);
+		}
 		executor = Executors.newScheduledThreadPool(1);
 		executor.scheduleAtFixedRate(this::execute, 0, updateInterval, TimeUnit.MILLISECONDS);
 	}
@@ -76,9 +85,37 @@ public class CIPollJob {
 	 * Execute.
 	 */
 	private void execute() {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Execute " + jobName);
+		}
 		final CIJobQueryResult result = server.queryJob(jobName);
-		if (result != null) {
-			devices.forEach(t -> t.update(result.isRunning(), result.getJobStatus()));
+		if (result == null) return;
+		final Consumer<? super ExtremeFeedbackDevice> action = getAction(result.getJobStatus(), result.isRunning());
+		if (action != null) {
+			devices.forEach(action);
+		}
+	}
+
+	/**
+	 * Get the action.
+	 *
+	 * @param jobStatus
+	 *            the {@link CIJobStatus}
+	 * @param running
+	 *            the running flag
+	 * @return the action
+	 */
+	private Consumer<? super ExtremeFeedbackDevice> getAction(final CIJobStatus jobStatus, final boolean running) {
+		switch (jobStatus) {
+		case BUILD_FAILED:
+			return t -> t.showBuildFailed(running);
+		case SUCCESS:
+			return t -> t.showSuccess(running);
+		case TESTS_FAILED:
+			return t -> t.showTestsFailed(running);
+		default:
+			logger.error("Cannot find action for jobStatus " + jobStatus);
+			return null;
 		}
 	}
 

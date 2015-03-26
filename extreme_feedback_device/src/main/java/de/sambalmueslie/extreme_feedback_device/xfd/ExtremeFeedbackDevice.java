@@ -3,8 +3,6 @@
  */
 package de.sambalmueslie.extreme_feedback_device.xfd;
 
-import de.sambalmueslie.extreme_feedback_device.ci.CIJobStatus;
-
 /**
  * A extreme feedback device.
  *
@@ -12,6 +10,28 @@ import de.sambalmueslie.extreme_feedback_device.ci.CIJobStatus;
  */
 public interface ExtremeFeedbackDevice {
 
-	void update(boolean running, CIJobStatus status);
+	/**
+	 * Show an error about the build failed.
+	 *
+	 * @param running
+	 *            the job is running
+	 */
+	void showBuildFailed(boolean running);
+
+	/**
+	 * Show success.
+	 *
+	 * @param running
+	 *            the job is running
+	 */
+	void showSuccess(boolean running);
+
+	/**
+	 * Show a warning about the tests failed.
+	 *
+	 * @param running
+	 *            the job is running
+	 */
+	void showTestsFailed(boolean running);
 
 }

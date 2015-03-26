@@ -6,8 +6,6 @@ package de.sambalmueslie.extreme_feedback_device.xfd;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.sambalmueslie.extreme_feedback_device.ci.CIJobStatus;
-
 /**
  * Log with the {@link Logger}.
  *
@@ -18,12 +16,27 @@ public class LogExtremeFeedbackDevice implements ExtremeFeedbackDevice {
 	private static Logger logger = LogManager.getLogger(LogExtremeFeedbackDevice.class);
 
 	/**
-	 * @see de.sambalmueslie.extreme_feedback_device.xfd.ExtremeFeedbackDevice#update(boolean,
-	 *      de.sambalmueslie.extreme_feedback_device.ci.CIJobStatus)
+	 * @see de.sambalmueslie.extreme_feedback_device.xfd.ExtremeFeedbackDevice#showBuildFailed(boolean)
 	 */
 	@Override
-	public void update(final boolean running, final CIJobStatus status) {
-		logger.info("Job is running = " + running + " with state " + status);
+	public void showBuildFailed(final boolean running) {
+		logger.error("Job building failed! runnning=" + running);
+	}
+
+	/**
+	 * @see de.sambalmueslie.extreme_feedback_device.xfd.ExtremeFeedbackDevice#showSuccess(boolean)
+	 */
+	@Override
+	public void showSuccess(final boolean running) {
+		logger.info("Job succeed! runnning=" + running);
+	}
+
+	/**
+	 * @see de.sambalmueslie.extreme_feedback_device.xfd.ExtremeFeedbackDevice#showTestsFailed(boolean)
+	 */
+	@Override
+	public void showTestsFailed(final boolean running) {
+		logger.warn("Job test execution failed! runnning=" + running);
 	}
 
 }
