@@ -7,6 +7,8 @@ import de.sambalmueslie.extreme_feedback_device.ci.CIJobQueryResult;
 import de.sambalmueslie.extreme_feedback_device.ci.CIJobStatus;
 
 /**
+ * The jenkins {@link CIJobQueryResult}.
+ * 
  * @author sambalmueslie 2015
  */
 public class JenkinsJobQueryResult implements CIJobQueryResult {
@@ -30,6 +32,7 @@ public class JenkinsJobQueryResult implements CIJobQueryResult {
 	/**
 	 * @see de.sambalmueslie.extreme_feedback_device.ci.CIJobQueryResult#getJobStatus()
 	 */
+	@Override
 	public CIJobStatus getJobStatus() {
 		return status;
 	}
@@ -37,6 +40,7 @@ public class JenkinsJobQueryResult implements CIJobQueryResult {
 	/**
 	 * @see de.sambalmueslie.extreme_feedback_device.ci.CIJobQueryResult#getName()
 	 */
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -44,6 +48,7 @@ public class JenkinsJobQueryResult implements CIJobQueryResult {
 	/**
 	 * @see de.sambalmueslie.extreme_feedback_device.ci.CIJobQueryResult#isRunning()
 	 */
+	@Override
 	public boolean isRunning() {
 		return running;
 	}
