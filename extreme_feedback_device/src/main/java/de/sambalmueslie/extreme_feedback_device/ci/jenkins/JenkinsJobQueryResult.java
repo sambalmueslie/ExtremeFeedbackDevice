@@ -8,10 +8,10 @@ import de.sambalmueslie.extreme_feedback_device.ci.CIJobStatus;
 
 /**
  * The jenkins {@link CIJobQueryResult}.
- * 
+ *
  * @author sambalmueslie 2015
  */
-public class JenkinsJobQueryResult implements CIJobQueryResult {
+class JenkinsJobQueryResult implements CIJobQueryResult {
 
 	/**
 	 * Constructor.

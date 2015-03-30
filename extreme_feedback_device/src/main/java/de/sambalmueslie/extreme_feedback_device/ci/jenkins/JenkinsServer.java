@@ -3,17 +3,8 @@
  */
 package de.sambalmueslie.extreme_feedback_device.ci.jenkins;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -21,6 +12,7 @@ import com.google.gson.JsonParser;
 import de.sambalmueslie.extreme_feedback_device.ci.CIJobQueryResult;
 import de.sambalmueslie.extreme_feedback_device.ci.CIJobStatus;
 import de.sambalmueslie.extreme_feedback_device.ci.CIServer;
+import de.sambalmueslie.extreme_feedback_device.connector.CIConnector;
 
 /**
  * The jenkins {@link CIServer}.
@@ -29,6 +21,18 @@ import de.sambalmueslie.extreme_feedback_device.ci.CIServer;
  */
 public class JenkinsServer implements CIServer {
 
+	/** the blue color. */
+	private static final String COLOR_BLUE = "blue";
+	/** the blue color while running. */
+	private static final String COLOR_BLUE_ANIME = "blue_anime";
+	/** the red color. */
+	private static final String COLOR_RED = "red";
+	/** the red color while running. */
+	private static final String COLOR_RED_ANIME = "red_anime";
+	/** the yellow color. */
+	private static final String COLOR_YELLOW = "yellow";
+	/** the yellow color while running. */
+	private static final String COLOR_YELLOW_ANIME = "yellow_anime";
 	/** the default listen port of jenkins. */
 	private static final int DEFAULT_PORT = 8080;
 	/** the {@link Logger}. */
@@ -46,11 +50,9 @@ public class JenkinsServer implements CIServer {
 	 * @param password
 	 *            {@link #password}
 	 */
-	public JenkinsServer(final String hostname, final int port, final String username, final String password) {
-		this.hostname = hostname;
-		this.port = port;
-		this.username = username;
-		this.password = password;
+	public JenkinsServer(final String hostname, final int port, final String username, final String password, final CIConnector connector) {
+		this.connector = connector;
+		connector.connect(hostname, port, username, password);
 	}
 
 	/**
@@ -63,8 +65,8 @@ public class JenkinsServer implements CIServer {
 	 * @param password
 	 *            {@link #password}
 	 */
-	public JenkinsServer(final String hostname, final String username, final String password) {
-		this(hostname, DEFAULT_PORT, username, password);
+	public JenkinsServer(final String hostname, final String username, final String password, final CIConnector connector) {
+		this(hostname, DEFAULT_PORT, username, password, connector);
 	}
 
 	/**
@@ -72,22 +74,12 @@ public class JenkinsServer implements CIServer {
 	 */
 	@Override
 	public CIJobQueryResult queryJob(final String jobName) {
-		final String uri = "http://" + hostname + ":" + port + "/job/" + jobName + "/api/json?pretty=true";
-		final HttpAuthenticationFeature feature = HttpAuthenticationFeature.basicBuilder().nonPreemptive().credentials(username, password).build();
-
-		final ClientConfig clientConfig = new ClientConfig();
-		clientConfig.register(feature);
-
-		final Client client = ClientBuilder.newClient(clientConfig);
-		final WebTarget webTarget = client.target(uri);
-
-		final Invocation.Builder invocationBuilder = webTarget.request(MediaType.TEXT_PLAIN_TYPE);
-		final Response response = invocationBuilder.get();
-		if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-			logger.error("Cannot connect to jenkins on " + uri);
+		final String url = "job/" + jobName + "/api/json?pretty=true";
+		final String content = connector.getContent(url, String.class);
+		if (content == null) {
+			logger.error("Cannot read content from " + url);
 			return null;
 		}
-		final String content = response.readEntity(String.class);
 		return parseContent(content);
 	}
 
@@ -104,33 +96,25 @@ public class JenkinsServer implements CIServer {
 		final String name = obj.get("name").toString().replace('"', ' ').trim();
 		final String color = obj.get("color").toString().replace('"', ' ').trim();
 		switch (color) {
-		case "red":
+		case COLOR_RED:
 			return new JenkinsJobQueryResult(name, false, CIJobStatus.BUILD_FAILED);
-		case "red_anime":
+		case COLOR_RED_ANIME:
 			return new JenkinsJobQueryResult(name, true, CIJobStatus.BUILD_FAILED);
-		case "yellow":
+		case COLOR_YELLOW:
 			return new JenkinsJobQueryResult(name, false, CIJobStatus.TESTS_FAILED);
-		case "yellow_anime":
+		case COLOR_YELLOW_ANIME:
 			return new JenkinsJobQueryResult(name, true, CIJobStatus.TESTS_FAILED);
-		case "blue":
+		case COLOR_BLUE:
 			return new JenkinsJobQueryResult(name, false, CIJobStatus.SUCCESS);
-		case "blue_anime":
+		case COLOR_BLUE_ANIME:
 			return new JenkinsJobQueryResult(name, true, CIJobStatus.SUCCESS);
 		default:
+			logger.error("Unkown color " + color);
 			return null;
 		}
 	}
 
-	/** the hostname. */
-	private final String hostname;
-
-	/** the password to use. */
-	private final String password;
-
-	/** the host port. */
-	private final int port;
-
-	/** the username to use. */
-	private final String username;
+	/** the {@link CIConnector}. */
+	private final CIConnector connector;
 
 }

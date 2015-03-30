@@ -4,6 +4,8 @@
 package de.sambalmueslie.extreme_feedback_device;
 
 import de.sambalmueslie.extreme_feedback_device.ci.jenkins.JenkinsServer;
+import de.sambalmueslie.extreme_feedback_device.connector.CIConnector;
+import de.sambalmueslie.extreme_feedback_device.connector.RestConnector;
 import de.sambalmueslie.extreme_feedback_device.xfd.LogExtremeFeedbackDevice;
 
 /**
@@ -36,7 +38,8 @@ public class ExtremeFeedbackController {
 	 * Constructor.
 	 */
 	public ExtremeFeedbackController(final String host, final String username, final String password, final String jobName) {
-		final JenkinsServer jenkins = new JenkinsServer(host, username, password);
+		final CIConnector connector = new RestConnector();
+		final JenkinsServer jenkins = new JenkinsServer(host, username, password, connector);
 		final CIPollJob pollJob = new CIPollJob(jenkins, jobName, 5000, new LogExtremeFeedbackDevice());
 		pollJob.start();
 		// TODO we need sth to stop this thing
